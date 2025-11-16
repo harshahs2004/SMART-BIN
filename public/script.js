@@ -69,213 +69,99 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
         // Dashboard logic
-
-                        if (window.location.pathname.includes('dashboard')) {
-
-                            const urlParams = new URLSearchParams(window.location.search);
-
-                            const bin_id = urlParams.get("bin");
-
-                            if (bin_id) {
-
-                                localStorage.setItem("currentBin", bin_id);
-
-                            }
-
-                
-
-                            const startDumpingBtn = document.getElementById('start-dumping-btn');
-
-                            if (startDumpingBtn) {
-
-                                startDumpingBtn.addEventListener('click', async () => {
-
-                                    const currentBin = localStorage.getItem("currentBin");
-
-                                    if (!currentBin) {
-
-                                        alert('No bin identified. Please scan a bin QR code.');
-
-                                        return;
-
-                                    }
-
-                
-
-                                    try {
-
-                                        const response = await fetch(`${API_URL}/startDump`, {
-
-                                            method: 'POST',
-
-                                            headers: { 'Content-Type': 'application/json' },
-
-                                            body: JSON.stringify({ bin_id: currentBin })
-
-                                        });
-
-                
-
-                                        if (response.ok) {
-
-                                            alert(`Bin ${currentBin} is ready for dumping.`);
-
-                                        } else {
-
-                                            alert('Please log in again.');
-
-                                        }
-
-                                    } catch (error) {
-
-                                        console.error(error);
-
-                                        alert('Error starting dump');
-
-                                    }
-
-                                });
-
-                            }
-
-    
+        if (window.location.pathname.includes('dashboard')) {
+            const html5QrCode = new Html5Qrcode("qr-scanner");
+            const qrCodeSuccessCallback = (decodedText, decodedResult) => {
+                document.getElementById('scanned-result').innerText = `Scanned: ${decodedText}`;
+                fetch(`${API_URL}/scan`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: decodedText })
+                })
+                .then(response => {
+                    if (response.ok) {
+                        alert('You can dump waste now.');
+                        html5QrCode.stop();
+                    } else {
+                        alert('Invalid QR Code');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error scanning QR Code');
+                });
+            };
+            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+            html5QrCode.start({ facingMode: "environment" }, config, qrCodeSuccessCallback);
 
             const fetchUserData = async () => {
-
                 try {
-
                     const response = await fetch(`${API_URL}/user/${userEmail}`);
-
                     if (response.ok) {
-
                         const user = await response.json();
-
                         welcomeMessage.textContent = `Welcome, ${user.name}`;
-
                         if(rewardPoints) rewardPoints.textContent = user.points;
-
                     } else {
-
                         throw new Error('Failed to fetch user data');
-
                     }
-
                 } catch (error) {
-
                     console.error(error);
-
                     alert('Error fetching user data');
-
                 }
-
             };
-
-    
 
             const fetchDumpHistory = async () => {
-
                 try {
-
                     const response = await fetch(`${API_URL}/user/${userEmail}/dumps`);
-
                     if (response.ok) {
-
                         const dumps = await response.json();
-
                         dumpHistory.innerHTML = '';
-
                         dumps.forEach(dump => {
-
                             const row = document.createElement('tr');
-
                             row.innerHTML = `
-
                                 <td class="p-3">${new Date(dump.dump_time).toLocaleString()}</td>
-
                                 <td class="p-3">${dump.weight}</td>
-
                                 <td class="p-3">${dump.qr_code}</td>
-
                             `;
-
                             dumpHistory.appendChild(row);
-
                         });
-
                     } else {
-
                         throw new Error('Failed to fetch dump history');
-
                     }
-
                 } catch (error) {
-
                     console.error(error);
-
                     alert('Error fetching dump history');
-
                 }
-
             };
-
-    
 
             const fetchRewardsHistory = async () => {
-
                 try {
-
                     const response = await fetch(`${API_URL}/user/${userEmail}/rewards`);
-
                     if (response.ok) {
-
                         const rewards = await response.json();
-
                         rewardsHistory.innerHTML = '';
-
                         rewards.forEach(reward => {
-
                             const row = document.createElement('tr');
-
                             row.innerHTML = `
-
                                 <td class="p-3">${new Date(reward.requested_at).toLocaleString()}</td>
-
                                 <td class="p-3">${reward.points_earned}</td>
-
                                 <td class="p-3">${reward.points_redeemed}</td>
-
                                 <td class="p-3">${reward.withdrawal_status}</td>
-
                             `;
-
                             rewardsHistory.appendChild(row);
-
                         });
-
                     } else {
-
                         throw new Error('Failed to fetch rewards history');
-
                     }
-
                 } catch (error) {
-
                     console.error(error);
-
                     alert('Error fetching rewards history');
-
                 }
-
             };
 
-    
-
             fetchUserData();
-
             fetchDumpHistory();
-
             fetchRewardsHistory();
-
         }
 
     
