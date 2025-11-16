@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - SmartBin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(to bottom, #F2FFF8, #FFFFFF);
+        }
+        .text-dark-gray { color: #1A1A1A; }
+        .text-green-accent { color: #0E8A51; }
+        .bg-green-accent { background-color: #0E8A51; }
+        .sidebar-bg { background-color: #0B6E41; }
+        .hover\:bg-green-accent-dark:hover { background-color: #0b6e41; }
+    </style>
+</head>
+<body class="text-dark-gray">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <div class="sidebar-bg text-white w-64 p-4 space-y-4 flex-shrink-0">
+            <div class="flex items-center mb-8">
+                <svg class="w-8 h-8 text-white mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7.014A8.003 8.003 0 0112 3a8 8 0 11-5.657 15.657z"></path></svg>
+                <span class="font-bold text-2xl">SmartBin</span>
+            </div>
+            <nav>
+                <a href="dashboard.html" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-green-accent">Dashboard</a>
+                <a href="profile.html" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-green-accent">Profile</a>
+                <a href="#" data-bs-toggle="modal" data-bs-target="#walletModal" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-green-accent">Wallet</a>
+                <a href="#" id="logout" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-green-accent">Logout</a>
+            </nav>
+        </div>
+
+        <!-- Main content -->
+        <div class="flex-1 p-10 overflow-y-auto">
+            <h2 id="welcome-message" class="text-3xl font-bold mb-6"></h2>
+            <div class="grid md:grid-cols-2 gap-8 mb-8">
+                <!-- Start Dumping Card -->
+                <div class="bg-white p-6 rounded-lg shadow-md text-center">
+                    <h3 class="text-2xl font-bold mb-4">Start Dumping Waste</h3>
+                    <p class="text-gray-600 mb-4">Click the button to start the dumping process.</p>
+                    <button id="start-dumping-btn" class="bg-green-accent hover:bg-green-accent-dark text-white font-bold py-2 px-6 rounded-lg">Start Dumping Waste</button>
+                </div>
+
+                <!-- Reward Points Card -->
+                <div class="bg-white p-6 rounded-lg shadow-md text-center flex flex-col justify-center">
+                    <h3 class="text-2xl font-bold mb-4">Reward Points</h3>
+                    <p id="reward-points" class="text-6xl font-bold">0</p>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- Previous Dumps -->
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-xl font-bold mb-4">Previous Dumps</h3>
+                    <table class="w-full">
+                        <thead>
+                            <tr class="border-b">
+                                <th class="text-left p-3">Timestamp</th>
+                                <th class="text-left p-3">Weight (kg)</th>
+                                <th class="text-left p-3">QR Code</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dump-history"></tbody>
+                    </table>
+                </div>
+
+                <!-- Rewards Earned -->
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-xl font-bold mb-4">Rewards History</h3>
+                    <table class="w-full">
+                        <thead>
+                            <tr class="border-b">
+                                <th class="text-left p-3">Timestamp</th>
+                                <th class="text-left p-3">Points Earned</th>
+                                <th class="text-left p-3">Points Redeemed</th>
+                                <th class="text-left p-3">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rewards-history"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="script.js"></script>
+</body>
+</html>
