@@ -70,29 +70,44 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Dashboard logic
         if (window.location.pathname.includes('dashboard')) {
-            const html5QrCode = new Html5Qrcode("qr-scanner");
-            const qrCodeSuccessCallback = (decodedText, decodedResult) => {
-                document.getElementById('scanned-result').innerText = `Scanned: ${decodedText}`;
-                fetch(`${API_URL}/scan`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ user_id: decodedText })
-                })
-                .then(response => {
-                    if (response.ok) {
-                        alert('You can dump waste now.');
-                        html5QrCode.stop();
-                    } else {
-                        alert('Invalid QR Code');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Error scanning QR Code');
+            const claimDumpBtn = document.getElementById('claim-dump-btn');
+            if (claimDumpBtn) {
+                claimDumpBtn.addEventListener('click', () => {
+                    const html5QrCode = new Html5Qrcode("qr-scanner");
+                    const qrCodeSuccessCallback = (decodedText, decodedResult) => {
+                        const parts = decodedText.split(':');
+                        if (parts.length !== 2) {
+                            alert('Invalid QR Code format');
+                            return;
+                        }
+                        const bin_id = parts[0];
+                        const session_id = parts[1];
+
+                        document.getElementById('scanned-result').innerText = `Scanned: ${decodedText}`;
+                        fetch(`${API_URL}/claim-session`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ session_id: session_id, user_email: userEmail })
+                        })
+                        .then(response => {
+                            if (response.ok) {
+                                alert('Dump claimed successfully! Waste data recorded.');
+                                html5QrCode.stop();
+                                fetchUserData();
+                                fetchDumpHistory();
+                            } else {
+                                alert('Failed to claim dump');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('Error claiming dump');
+                        });
+                    };
+                    const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+                    html5QrCode.start({ facingMode: "environment" }, config, qrCodeSuccessCallback);
                 });
-            };
-            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
-            html5QrCode.start({ facingMode: "environment" }, config, qrCodeSuccessCallback);
+            }
 
             const fetchUserData = async () => {
                 try {

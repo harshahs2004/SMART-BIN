@@ -202,6 +202,84 @@ app.post('/withdraw', (req, res) => {
     });
 });
 
+app.post('/esp/report-temp-session', (req, res) => {
+    const { bin_id, total_weight, max_weight, start_time, end_time, types } = req.body;
+    const session_id = 'S' + Math.random().toString(36).substring(2, 15);
+    const query = 'INSERT INTO esp_sessions (session_id, bin_id, total_weight, max_weight, start_time, end_time, types) VALUES (?, ?, ?, ?, ?, ?, ?)';
+    db.query(query, [session_id, bin_id, total_weight, max_weight, start_time, end_time, types], (err, result) => {
+        if (err) {
+            console.error(err);
+            res.status(500).send('Server error');
+            return;
+        }
+        res.status(200).json({ status: "ok", session_id: session_id });
+    });
+});
+
+app.get('/esp/session-status', (req, res) => {
+    const { session_id } = req.query;
+    const query = 'SELECT status, claimed_by FROM esp_sessions WHERE session_id = ?';
+    db.query(query, [session_id], (err, results) => {
+        if (err) {
+            console.error(err);
+            res.status(500).send('Server error');
+            return;
+        }
+        if (results.length > 0) {
+            res.json(results[0]);
+        } else {
+            res.status(404).send('Session not found');
+        }
+    });
+});
+
+app.post('/claim-session', (req, res) => {
+    const { session_id, user_email } = req.body;
+    const getSessionQuery = 'SELECT * FROM esp_sessions WHERE session_id = ?';
+    db.query(getSessionQuery, [session_id], (err, results) => {
+        if (err) {
+            console.error(err);
+            res.status(500).send('Server error');
+            return;
+        }
+        if (results.length > 0) {
+            const session = results[0];
+            if (session.status === 'claimed') {
+                res.status(400).send('Session already claimed');
+                return;
+            }
+            const updateSessionQuery = 'UPDATE esp_sessions SET status = "claimed", claimed_by = ? WHERE session_id = ?';
+            db.query(updateSessionQuery, [user_email, session_id], (err, result) => {
+                if (err) {
+                    console.error(err);
+                    res.status(500).send('Server error');
+                    return;
+                }
+                const points = Math.floor(session.total_weight * 10);
+                const insertDumpQuery = 'INSERT INTO dumps (user_email, weight, qr_code, dump_time) VALUES (?, ?, ?, NOW())';
+                db.query(insertDumpQuery, [user_email, session.total_weight, session_id], (err, result) => {
+                    if (err) {
+                        console.error(err);
+                        res.status(500).send('Server error');
+                        return;
+                    }
+                    const updateUserQuery = 'UPDATE users SET reward_points = reward_points + ? WHERE email = ?';
+                    db.query(updateUserQuery, [points, user_email], (err, result) => {
+                        if (err) {
+                            console.error(err);
+                            res.status(500).send('Server error');
+                            return;
+                        }
+                        res.status(200).json({ status: "success" });
+                    });
+                });
+            });
+        } else {
+            res.status(404).send('Session not found');
+        }
+    });
+});
+
 app.listen(port, () => {
     console.log(`🚀 Server running at http://localhost:${port}`);
 });
