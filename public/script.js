@@ -191,7 +191,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             row.innerHTML = `
                                 <td class="p-3">${new Date(dump.dump_time).toLocaleString()}</td>
                                 <td class="p-3">${dump.weight}</td>
-                                <td class="p-3">${dump.waste_type || 'N/A'}</td>
+                                <td class="p-3">${dump.type || 'N/A'}</td>
                                 <td class="p-3">${dump.qr_code}</td>
                             `;
                             dumpHistory.appendChild(row);
