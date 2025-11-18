@@ -100,7 +100,7 @@ You can import the database using the `schema.sql` file provided in this folder.
 +---------+
 
 +--------------+ (claimed_by) -- (1) +---------+
-| esp_sessions |                      |  users  |
+
 +--------------+                      +---------+
 ```
 
